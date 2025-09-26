@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Customer Order System</h1>
+<p>Simple system to manage customers and orders with SMS notifications.</p>
+
+{% if not current_user.is_authenticated %}
+    <p><a href="{{ url_for('main.login') }}" class="btn btn-primary">Login with Google to Start</a></p>
+{% else %}
+    <p><a href="{{ url_for('main.dashboard') }}" class="btn btn-success">Go to Dashboard</a></p>
+{% endif %}
+
+<h3>Features:</h3>
+<ul>
+    <li>Google Login</li>
+    <li>Customer Management</li>
+    <li>Order Tracking</li>
+    <li>SMS Notifications</li>
+</ul>
+{% endblock %}
