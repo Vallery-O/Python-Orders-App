@@ -15,13 +15,11 @@ def create_app():
     template_dir = os.path.join(basedir, 'templates')
     static_dir = os.path.join(basedir, 'static')
     
-    # Create directories if they don't exist
+    # Create dir
     os.makedirs(template_dir, exist_ok=True)
     os.makedirs(static_dir, exist_ok=True)
     
-    app = Flask(__name__, 
-                template_folder=template_dir,
-                static_folder=static_dir)
+    app = Flask(__name__,template_folder=template_dir,static_folder=static_dir)
     
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-12345')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///orderapp.db')

@@ -38,10 +38,9 @@ class TestRoutes:
 
         # Use the test client’s session_transaction to log the user in
         with client.session_transaction() as sess:
-            sess['_user_id'] = str(user.id)  # Flask-Login stores user_id as string
-            sess['_fresh'] = True            # mark session as fresh login
+            sess['_user_id'] = str(user.id) 
+            sess['_fresh'] = True            # fresh login
 
-        # Now request the dashboard
         response = client.get("/dashboard")
         assert response.status_code == 200
         assert b"Dashboard" in response.data
@@ -51,7 +50,7 @@ class TestRoutes:
         """Create a customer + order and check API endpoints."""
         u = self._login_user(app, client)
 
-        # Create a customer directly in DB
+        # Create a customer in DB
         with app.app_context():
             c = Customer(name="Acme Ltd", phone="+254700000000", created_by=u.id)
             db.session.add(c)

@@ -12,8 +12,8 @@ oauth = OAuth()
 main_bp = Blueprint('main', __name__)
 
 def init_oauth(app):
-    """Initialize OAuth with the Flask app"""
-    oauth.init_app(app)
+
+    oauth.init_app(app)    # Initialize OAuth with the Flask
     
     # Check if Google OAuth credentials are configured
     client_id = os.getenv('GOOGLE_CLIENT_ID')
@@ -46,9 +46,7 @@ def index():
 
 @main_bp.route('/login')
 def login():
-    """Initiate Google OAuth login"""
-    # Check if OAuth is configured
-    if 'google' not in oauth._clients:
+    if 'google' not in oauth._clients:    # Check if OAuth is configured
         flash('Google OAuth is not configured. Please contact administrator.', 'error')
         return redirect(url_for('main.index'))
     
@@ -61,7 +59,6 @@ def login():
 
 @main_bp.route('/callback')
 def auth_callback(): # pragma: no cover
-    """OAuth callback handler - manual approach"""
     print("=== DEBUG: Callback Route Started ===")
     print(f"Request args: {request.args}")
     
@@ -121,7 +118,7 @@ def auth_callback(): # pragma: no cover
         user_info = userinfo_response.json()
         print(f"User info: {user_info}")
         
-        # Process user information
+        # user info
         google_id = user_info.get('id')
         email = user_info.get('email')
         name = user_info.get('name')
@@ -199,7 +196,6 @@ def create_customer():
 @main_bp.route('/order', methods=['POST'])
 @login_required
 def create_order():
-    """Create a new order"""
     try:
         order_name = request.form.get('order_name', '').strip()
         price_str = request.form.get('price', '0')

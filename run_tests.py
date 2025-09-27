@@ -1,28 +1,21 @@
-#!/usr/bin/env python3
-"""
-Test runner script for Customer Order API
-Replaces Makefile for test management
-"""
 import subprocess
 import sys
 import os
 import argparse
 
 def run_command(command, description):
-    """Run a shell command and handle errors"""
     print(f"=== {description} ===")
     print(f"Command: {command}")
     print("-" * 50)
     
     try:
-        result = subprocess.run(command, shell=True, check=True, 
-                              capture_output=True, text=True)
-        print("✅ SUCCESS")
+        result = subprocess.run(command, shell=True, check=True,capture_output=True, text=True)
+        print("SUCCESS")
         if result.stdout:
             print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print("❌ FAILED")
+        print("FAILED")
         print(f"Error: {e}")
         if e.stdout:
             print("STDOUT:", e.stdout)
@@ -31,14 +24,14 @@ def run_command(command, description):
         return False
 
 def run_all_tests():
-    """Run all tests with coverage"""
+    # tests with coverage
     return run_command(
         "pytest tests/ --cov=app --cov-report=html --cov-report=term-missing --cov-fail-under=70 -v",
         "Running all tests with coverage"
     )
 
 def run_fast_tests():
-    """Run tests quickly without coverage"""
+    #Run tests quickly without 
     return run_command(
         "pytest tests/ -v",
         "Running fast tests (no coverage)"
@@ -59,7 +52,7 @@ def run_specific_test(test_type):
             f"Running {test_type} tests"
         )
     else:
-        print(f"❌ Unknown test type: {test_type}")
+        print(f"Unknown test type: {test_type}")
         return False
 
 def run_coverage_only():
@@ -91,8 +84,8 @@ def show_status():
 def main():
     parser = argparse.ArgumentParser(description="Customer Order API Test Runner")
     parser.add_argument('command', nargs='?', default='all', 
-                       choices=['all', 'fast', 'models', 'routes', 'services', 'init', 'coverage', 'clean', 'status'],
-                       help='Test command to run (default: all)')
+        choices=['all', 'fast', 'models', 'routes', 'services', 'init', 'coverage', 'clean', 'status'], 
+        help='Test command to run (default: all)')
     
     args = parser.parse_args()
     

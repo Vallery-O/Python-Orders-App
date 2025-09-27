@@ -9,7 +9,7 @@ from app import create_app, db
 class TestAppInit:
 
     def setup_method(self):
-        # Clear relevant environment variables
+        # Clear relevant env variables
         for key in ['SECRET_KEY', 'DATABASE_URL']:
             if key in os.environ:
                 del os.environ[key]
@@ -22,7 +22,7 @@ class TestAppInit:
     def test_database_initialization(self):
         app = create_app()
         with app.app_context():
-            # Should be able to create and drop tables
+            # create and drop tables
             db.create_all()
             db.drop_all()
 

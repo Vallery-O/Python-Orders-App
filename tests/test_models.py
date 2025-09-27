@@ -5,7 +5,7 @@ import pytest
 from app import db
 from app.models import User, Customer, Order
 
-@pytest.mark.usefixtures("app")  # uses the fixture from tests/conftest.py
+@pytest.mark.usefixtures("app")  # conftest.py fixture
 class TestModels:
 
     def test_user_creation(self, app):
@@ -44,11 +44,10 @@ class TestModels:
             assert fetched is not None
             assert fetched.name == "ACME Corp"
             assert fetched.phone == "+254700000000"
-            assert fetched.user == u  # backref works
+            assert fetched.user == u  
             assert fetched.created_by == u.id
 
     def test_order_creation_and_to_dict(self, app):
-        """Can create an Order linked to Customer and User and convert to dict."""
         with app.app_context():
             # Create user and customer first
             u = User(google_id="g-333", email="o@example.com", name="Order Owner")
@@ -79,7 +78,7 @@ class TestModels:
             assert fetched.customer == c
             assert fetched.user == u
 
-            # test to_dict
+           
             d = fetched.to_dict()
             assert d["order_name"] == "Widget"
             assert d["price"] == 9.99

@@ -23,12 +23,12 @@ class SMSService:
         return self.live_send(phone_number, order_name, price)
     
     def live_send(self, phone_number, order_name, price):
-        """Send SMS using Africa's Talking API"""
+        # Send SMS using AT API
         try:
             formatted_phone = self.format_phone_number(phone_number)
             message = f"ORDER CONFIRMATION: {order_name} - ${price:.2f}. Thank you for your order!"
             
-            # Prepare data as Africa's Talking expects
+            # Prepare data for Africa's Talking 
             data = {
                 'username': self.username,
                 'to': formatted_phone,
@@ -59,7 +59,6 @@ class SMSService:
             return False
     
     def demo_send(self, phone_number, order_name, price):
-        """Demo mode"""
         formatted_phone = self.format_phone_number(phone_number)
         print(f"DEMO: SMS to {formatted_phone}: {order_name} - ${price:.2f}")
         return True
