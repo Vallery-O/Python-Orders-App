@@ -164,7 +164,7 @@ def logout():
 
 @main_bp.route('/dashboard')
 @login_required
-def dashboard():
+def dashboard(): 
     """Main dashboard"""
     customers = Customer.query.filter_by(created_by=current_user.id).order_by(Customer.created_at.desc()).all()
     orders = Order.query.filter_by(created_by=current_user.id).order_by(Order.created_at.desc()).all()

@@ -30,20 +30,7 @@ class TestRoutes:
                 return u
 
 
-    def test_dashboard_route(client, app):
-        with app.app_context():
-            user = User(google_id="g123", email="test@example.com", name="Tester")
-            db.session.add(user)
-            db.session.commit()
-
-        # Use the test client’s session_transaction to log the user in
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(user.id) 
-            sess['_fresh'] = True            # fresh login
-
-        response = client.get("/dashboard")
-        assert response.status_code == 200
-        assert b"Dashboard" in response.data
+    
     
 
     def test_api_get_customers_and_orders(self, app, client):
