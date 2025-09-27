@@ -1,73 +1,88 @@
-import pytest
-from datetime import datetime
-import os
-
-import sys
+import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app import create_app, db
+import pytest
+from app import db
 from app.models import User, Customer, Order
 
+@pytest.mark.usefixtures("app")  # uses the fixture from tests/conftest.py
 class TestModels:
 
-    @pytest.fixture
-    def app(self):
-        app = create_app()
-        app.config.update({
-            'TESTING': True,
-            'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:'
-        })
-        return app
-
-    @pytest.fixture
-    def init_db(self, app):
+    def test_user_creation(self, app):
+        """Can create a User and persist it."""
         with app.app_context():
-            db.create_all()
-            yield
-            db.drop_all()
-
-    def test_user_creation(self, app, init_db):
-        with app.app_context():
-            user = User(google_id='test123', email='test@test.com', name='Test User')
-            db.session.add(user)
+            u = User(
+                google_id="google-123",
+                email="test@example.com",
+                name="Test User"
+            )
+            db.session.add(u)
             db.session.commit()
-            
-            assert user.id is not None
-            assert user.email == 'test@test.com'
 
-    def test_customer_creation(self, app, init_db):
-        with app.app_context():
-            user = User(google_id='user123', email='user@test.com', name='User')
-            customer = Customer(name='Test Customer', phone='+254712345678', created_by=user.id)
-            
-            db.session.add_all([user, customer])
-            db.session.commit()
-            
-            assert customer.id is not None
-            assert customer.user == user
+            fetched = User.query.first()
+            assert fetched is not None
+            assert fetched.google_id == "google-123"
+            assert fetched.email == "test@example.com"
+            assert fetched.name == "Test User"
 
-    def test_order_creation(self, app, init_db):
+    def test_customer_creation(self, app):
+        """Can create a Customer linked to a User."""
         with app.app_context():
-            user = User(google_id='user123', email='user@test.com', name='User')
-            customer = Customer(name='Customer', phone='+254712345678', created_by=user.id)
-            order = Order(order_name='Test Order', price=99.99, customer_id=customer.id, created_by=user.id)
-            
-            db.session.add_all([user, customer, order])
+            u = User(google_id="g-222", email="c@example.com", name="Customer Owner")
+            db.session.add(u)
             db.session.commit()
-            
-            assert order.id is not None
-            assert order.customer == customer
-            assert order.user == user
 
-    def test_order_to_dict(self, app, init_db):
-        with app.app_context():
-            user = User(google_id='user123', email='user@test.com', name='User')
-            customer = Customer(name='Customer', phone='+254712345678', created_by=user.id)
-            order = Order(order_name='Test Order', price=99.99, customer_id=customer.id, created_by=user.id)
-            
-            db.session.add_all([user, customer, order])
+            c = Customer(
+                name="ACME Corp",
+                phone="+254700000000",
+                created_by=u.id
+            )
+            db.session.add(c)
             db.session.commit()
-            
-            order_dict = order.to_dict()
-            assert order_dict['order_name'] == 'Test Order'
-            assert order_dict['price'] == 99.99
+
+            fetched = Customer.query.first()
+            assert fetched is not None
+            assert fetched.name == "ACME Corp"
+            assert fetched.phone == "+254700000000"
+            assert fetched.user == u  # backref works
+            assert fetched.created_by == u.id
+
+    def test_order_creation_and_to_dict(self, app):
+        """Can create an Order linked to Customer and User and convert to dict."""
+        with app.app_context():
+            # Create user and customer first
+            u = User(google_id="g-333", email="o@example.com", name="Order Owner")
+            db.session.add(u)
+            db.session.commit()
+
+            c = Customer(
+                name="Beta Ltd",
+                phone="+254700000111",
+                created_by=u.id
+            )
+            db.session.add(c)
+            db.session.commit()
+
+            o = Order(
+                order_name="Widget",
+                price=9.99,
+                customer_id=c.id,
+                created_by=u.id
+            )
+            db.session.add(o)
+            db.session.commit()
+
+            fetched = Order.query.first()
+            assert fetched is not None
+            assert fetched.order_name == "Widget"
+            assert fetched.price == 9.99
+            assert fetched.customer == c
+            assert fetched.user == u
+
+            # test to_dict
+            d = fetched.to_dict()
+            assert d["order_name"] == "Widget"
+            assert d["price"] == 9.99
+            assert d["customer_id"] == c.id
+            assert d["customer_name"] == c.name
+            assert "created_at" in d

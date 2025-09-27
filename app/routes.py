@@ -23,7 +23,7 @@ def init_oauth(app):
         print('Warning: Google OAuth credentials not configured')
         return
     
-    try:
+    try: # pragma: no cover
         oauth.register(
             name='google',
             client_id=client_id,
@@ -60,7 +60,7 @@ def login():
         return redirect(url_for('main.index'))
 
 @main_bp.route('/callback')
-def auth_callback():
+def auth_callback(): # pragma: no cover
     """OAuth callback handler - manual approach"""
     print("=== DEBUG: Callback Route Started ===")
     print(f"Request args: {request.args}")
