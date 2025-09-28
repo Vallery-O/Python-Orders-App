@@ -1,107 +1,87 @@
 import subprocess
 import sys
-import os
 import argparse
+import shutil
+import os
+import platform
 
-def run_command(command, description):
-    print(f"=== {description} ===")
-    print(f"Command: {command}")
-    print("-" * 50)
-    
+def ensure_venv():
+    #  virtual environment 
+    venv_dir = ".venv"
+    if not os.path.isdir(venv_dir):
+        print("No virtualenv found. Creating one...")
+        subprocess.run([sys.executable, "-m", "venv", venv_dir], check=True)
+        print("Virtualenv created at .venv")
+
+    # Determine the path to the venv python
+    if platform.system() == "Windows":
+        venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
+    else:
+        venv_python = os.path.join(venv_dir, "bin", "python")
+
+    # Install reqs
+    if os.path.exists("requirements.txt"):
+        subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True)
+        subprocess.run([venv_python, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
+
+    return venv_python
+
+def run_pytest(python_exec, args):
+    cmd = [python_exec, "-m", "pytest"] + args
+    print(f"\n=== Running: {' '.join(cmd)} ===\n")
     try:
-        result = subprocess.run(command, shell=True, check=True,capture_output=True, text=True)
-        print("SUCCESS")
-        if result.stdout:
-            print(result.stdout)
+        result = subprocess.run(
+            cmd,
+            check=True,
+            text=True,
+            capture_output=True
+        )
+        # summary  from stdout
+        for line in result.stdout.splitlines():
+            if line.strip().startswith("===") or line.strip().startswith("TOTAL") or "coverage" in line.lower() or "passed" in line.lower():
+                print(line)
         return True
     except subprocess.CalledProcessError as e:
-        print("FAILED")
-        print(f"Error: {e}")
-        if e.stdout:
-            print("STDOUT:", e.stdout)
+        print("Tests failed")
+        for line in (e.stdout or "").splitlines():
+            if line.strip().startswith("===") or line.strip().startswith("TOTAL") or "coverage" in line.lower() or "failed" in line.lower():
+                print(line)
         if e.stderr:
-            print("STDERR:", e.stderr)
+            print(e.stderr.splitlines()[-1])  # last error line
         return False
 
-def run_all_tests():
-    # tests with coverage
-    return run_command(
-        "pytest tests/ --cov=app --cov-report=html --cov-report=term-missing --cov-fail-under=70 -v",
-        "Running all tests with coverage"
-    )
-
-def run_fast_tests():
-    #Run tests quickly without 
-    return run_command(
-        "pytest tests/ -v",
-        "Running fast tests (no coverage)"
-    )
-
-def run_specific_test(test_type):
-    """Run specific test category"""
-    test_files = {
-        'models': 'tests/test_models.py',
-        'routes': 'tests/test_routes.py',
-        'services': 'tests/test_services.py',
-        'init': 'tests/test_init.py'
-    }
-    
-    if test_type in test_files:
-        return run_command(
-            f"pytest {test_files[test_type]} -v",
-            f"Running {test_type} tests"
-        )
-    else:
-        print(f"Unknown test type: {test_type}")
-        return False
-
-def run_coverage_only():
-    """Run coverage report only"""
-    return run_command(
-        "pytest tests/ --cov=app --cov-report=html --cov-report=term-missing",
-        "Generating coverage report"
-    )
-
-def clean_test_artifacts():
-    """Clean up test artifacts"""
-    return run_command(
-        "rm -rf .pytest_cache/ htmlcov/ .coverage coverage.xml",
-        "Cleaning test artifacts"
-    )
-
-def show_status():
-    """Show testing environment status"""
-    commands = [
-        ("python --version", "Python Version"),
-        ("pytest --version", "Pytest Version"),
-        ("pip list | grep -E '(pytest|cov)'", "Testing Packages")
-    ]
-    
-    print("=== Testing Environment Status ===")
-    for cmd, desc in commands:
-        run_command(cmd, desc)
+def clean_artifacts():
+    for path in [".pytest_cache", "htmlcov", ".coverage", "coverage.xml"]:
+        shutil.rmtree(path, ignore_errors=True)
+        try: os.remove(path)
+        except FileNotFoundError: pass
+    print("Cleaned test artifacts")
+    return True
 
 def main():
     parser = argparse.ArgumentParser(description="Customer Order API Test Runner")
-    parser.add_argument('command', nargs='?', default='all', 
-        choices=['all', 'fast', 'models', 'routes', 'services', 'init', 'coverage', 'clean', 'status'], 
-        help='Test command to run (default: all)')
-    
+    parser.add_argument("command", nargs="?", default="all",
+                        choices=["all","fast","models","routes","services","init","coverage","clean"],
+                        help="Test command to run (default: all)")
     args = parser.parse_args()
-    
-    commands = {
-        'all': run_all_tests,
-        'fast': run_fast_tests,
-        'models': lambda: run_specific_test('models'),
-        'routes': lambda: run_specific_test('routes'),
-        'services': lambda: run_specific_test('services'),
-        'init': lambda: run_specific_test('init'),
-        'coverage': run_coverage_only,
-        'clean': clean_test_artifacts,
-        'status': show_status
+
+    python_exec = ensure_venv()
+
+    pytest_args = {
+        "all": ["tests/", "--cov=app", "--cov-report=html", "--cov-report=term-missing", "--cov-fail-under=70", "-q", "--disable-warnings"],
+        "fast": ["tests/", "-q", "--disable-warnings"],
+        "models": ["tests/test_models.py", "-q", "--disable-warnings"],
+        "routes": ["tests/test_routes.py", "-q", "--disable-warnings"],
+        "services": ["tests/test_services.py", "-q", "--disable-warnings"],
+        "init": ["tests/test_init.py", "-q", "--disable-warnings"],
+        "coverage": ["tests/", "--cov=app", "--cov-report=html", "--cov-report=term-missing", "-q", "--disable-warnings"]
     }
-    
-    success = commands[args.command]()
+
+    if args.command == "clean":
+        success = clean_artifacts()
+    else:
+        success = run_pytest(python_exec, pytest_args[args.command])
+
     sys.exit(0 if success else 1)
 
 if __name__ == "__main__":
