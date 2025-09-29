@@ -16,8 +16,8 @@ It includes google OpenID Connect authentication, unit tests with coverage, Dock
 
 ## Features
 
-- **Customer Management**: Add and retrieve customers (name, phone, created_by).
-- **Order Management**: Add and retrieve orders (item, price, timestamp).
+- **Customer Management**: Add and retrieve customers.
+- **Order Management**: Add and retrieve orders.
 - **Authentication & Authorization**: OpenID Connect (Google OIDC).
 - **Unit Testing & Coverage**: Pytest + coverage.
 - **Dockerized**: Test and Build images to Docker Hub automatically.
@@ -27,7 +27,7 @@ It includes google OpenID Connect authentication, unit tests with coverage, Dock
 
 API ENDPOINTS
 
- POST --- `/api/customers` --- Create a customer 
+ POST --- `/api/customers` --- Create a customer
  GET ---  `/api/customers` --- List customers    
  POST --- `/api/orders`  --- Create an order   
  GET --- `/api/orders` --- List orders       
