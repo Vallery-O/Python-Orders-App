@@ -13,9 +13,9 @@ main_bp = Blueprint('main', __name__)
 
 def init_oauth(app):
 
-    oauth.init_app(app)    # Initialize OAuth with the Flask
+    oauth.init_app(app)    # Initialize OAuth with Flask
     
-    # Check if Google OAuth credentials are configured
+    # are Google OAuth credentials are configured
     client_id = os.getenv('GOOGLE_CLIENT_ID')
     client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
     
@@ -244,8 +244,20 @@ def create_order():
     
     return redirect(url_for('main.dashboard'))
 
+@main_bp.route('/order/<int:order_id>/delete', methods=['POST'])
+@login_required
+def delete_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order.created_by != current_user.id:
+        flash('You do not have permission to delete this order.', 'error')
+        return redirect(url_for('main.dashboard'))
     
+    db.session.delete(order)
+    db.session.commit()
+    flash("Order deleted successfully.", "success")
+    return redirect(url_for('main.dashboard'))
 
+    
 # API Routes
 @main_bp.route('/api/health')
 def api_health():
@@ -255,7 +267,7 @@ def api_health():
 @main_bp.route('/api/customers')
 @login_required
 def api_get_customers():
-    """API: Get all customers for current user"""
+    
     customers = Customer.query.filter_by(created_by=current_user.id).all()
     return jsonify([{
         'id': c.id,

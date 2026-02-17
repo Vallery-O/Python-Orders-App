@@ -9,7 +9,7 @@ from app.models import User, Customer, Order
 class TestModels:
 
     def test_user_creation(self, app):
-        """Can create a User and persist it."""
+        #Can create a User and push it
         with app.app_context():
             u = User(
                 google_id="google-123",
@@ -26,14 +26,14 @@ class TestModels:
             assert fetched.name == "Test User"
 
     def test_customer_creation(self, app):
-        """Can create a Customer linked to a User."""
+        #Can create a Customer linked to a User.
         with app.app_context():
             u = User(google_id="g-222", email="c@example.com", name="Customer Owner")
             db.session.add(u)
             db.session.commit()
 
             c = Customer(
-                name="ACME Corp",
+                name="John Doe",
                 phone="+254700000000",
                 created_by=u.id
             )
@@ -42,7 +42,7 @@ class TestModels:
 
             fetched = Customer.query.first()
             assert fetched is not None
-            assert fetched.name == "ACME Corp"
+            assert fetched.name == "John Doe"
             assert fetched.phone == "+254700000000"
             assert fetched.user == u  
             assert fetched.created_by == u.id
@@ -64,7 +64,7 @@ class TestModels:
 
             o = Order(
                 order_name="Widget",
-                price=9.99,
+                price=900,
                 customer_id=c.id,
                 created_by=u.id
             )
@@ -74,14 +74,14 @@ class TestModels:
             fetched = Order.query.first()
             assert fetched is not None
             assert fetched.order_name == "Widget"
-            assert fetched.price == 9.99
+            assert fetched.price == 900
             assert fetched.customer == c
             assert fetched.user == u
 
            
             d = fetched.to_dict()
             assert d["order_name"] == "Widget"
-            assert d["price"] == 9.99
+            assert d["price"] == 900
             assert d["customer_id"] == c.id
             assert d["customer_name"] == c.name
             assert "created_at" in d

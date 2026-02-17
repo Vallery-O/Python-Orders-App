@@ -9,7 +9,7 @@ from app import create_app, db
 class TestAppInit:
 
     def setup_method(self):
-        # Clear relevant env variables
+        #  env variables
         for key in ['SECRET_KEY', 'DATABASE_URL']:
             if key in os.environ:
                 del os.environ[key]

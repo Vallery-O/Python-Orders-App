@@ -34,7 +34,7 @@ class TestRoutes:
     
 
     def test_api_get_customers_and_orders(self, app, client):
-        """Create a customer + order and check API endpoints."""
+        # a customer + order and check API endpoints
         u = self._login_user(app, client)
 
         # Create a customer in DB
@@ -43,7 +43,7 @@ class TestRoutes:
             db.session.add(c)
             db.session.commit()
 
-            o = Order(order_name="Widget", price=19.99, customer_id=c.id, created_by=u.id)
+            o = Order(order_name="Widget", price=1999, customer_id=c.id, created_by=u.id)
             db.session.add(o)
             db.session.commit()
 
@@ -61,10 +61,10 @@ class TestRoutes:
         orders_json = resp2.get_json()
         assert len(orders_json) == 1
         assert orders_json[0]["order_name"] == "Widget"
-        assert orders_json[0]["price"] == 19.99
+        assert orders_json[0]["price"] == 1999
 
     def test_create_customer_route(self, app, client):
-        """POST /customer creates a customer and redirects."""
+        #POST /customer creates a customer and redirects
         u = self._login_user(app, client)
 
         resp = client.post(
@@ -85,7 +85,7 @@ class TestRoutes:
             c = Customer(name="Order Customer", phone="+254700000321", created_by=u.id)
             db.session.add(c)
             db.session.commit()
-            customer_id = c.id  # capture before leaving the context 
+            customer_id = c.id  # capture before leaving  
             
         from app import services
         monkeypatch.setattr(
